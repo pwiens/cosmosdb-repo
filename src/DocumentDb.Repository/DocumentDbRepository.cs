@@ -1,7 +1,6 @@
 ﻿using DocumentDb.Repository.Infrastructure;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Client.TransientFaultHandling;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,7 @@ namespace DocumentDB.Repository
 {
     public class DocumentDbRepository<T> : IDocumentDbRepository<T> where T : class
     {
-        private readonly IReliableReadWriteDocumentClient _client;
+        private readonly IDocumentClient _client;
         private readonly string _databaseId;
 
         private readonly AsyncLazy<Database> _database;
@@ -26,7 +25,7 @@ namespace DocumentDB.Repository
         private readonly string _repositoryIdentityProperty = "id";
         private readonly string _defaultIdentityPropertyName = "id";
 
-        public DocumentDbRepository(IReliableReadWriteDocumentClient client, string databaseId, Func<string> collectionNameFactory = null, Expression<Func<T, object>> idNameFactory = null)
+        public DocumentDbRepository(IDocumentClient client, string databaseId, Func<string> collectionNameFactory = null, Expression<Func<T, object>> idNameFactory = null)
         {
             _client = client;
             _databaseId = databaseId;

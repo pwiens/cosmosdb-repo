@@ -6,32 +6,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using DocumentDB.Repository;
 using DocumentDb.Repository.Samples.Model;
-using Microsoft.Azure.Documents.Client.TransientFaultHandling;
 
 namespace DocumentDb.Repository.Samples
 {
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Microsoft.Extensions.Configuration;
+
     internal class Program
     {
-        public static IReliableReadWriteDocumentClient Client { get; set; }
+        public static IDocumentClient Client { get; set; }
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             IDocumentDbInitializer init = new DocumentDbInitializer();
 
-            string endpointUrl = ConfigurationManager.AppSettings["azure.documentdb.endpointUrl"];
-            string authorizationKey = ConfigurationManager.AppSettings["azure.documentdb.authorizationKey"];
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            string endpointUrl = configuration["endpointUrl"];
+            string authorizationKey = configuration["authorizationKey"];
 
             // get the Azure DocumentDB client
-            Client = init.GetClient(endpointUrl, authorizationKey);
+            Client = init.GetClient(endpointUrl, authorizationKey, new ConnectionPolicy());
 
             // Run demo
-            Task t = MainAsync(args);
-            t.Wait();
-        }
-
-        private static async Task MainAsync(string[] args)
-        {
-            string databaseId = ConfigurationManager.AppSettings["azure.documentdb.databaseId"];
+            string databaseId = configuration["databaseId"];
 
             // create repository for persons and set Person.FullName property as identity field (overriding default Id property name)
             DocumentDbRepository<Person> repo = new DocumentDbRepository<Person>(Client, databaseId, null, p => p.FullName);
